@@ -1,0 +1,4 @@
+/usr/class/NetworkProgramming/cmake-build-debug/CMakeFiles/echosrv.dir
+/usr/class/NetworkProgramming/cmake-build-debug/CMakeFiles/echocli.dir
+/usr/class/NetworkProgramming/cmake-build-debug/CMakeFiles/edit_cache.dir
+/usr/class/NetworkProgramming/cmake-build-debug/CMakeFiles/rebuild_cache.dir

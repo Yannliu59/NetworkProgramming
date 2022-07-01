@@ -1,0 +1,4 @@
+/home/chengzi/Downloads/CLion-2022.1.3/clion-2022.1.3/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/home/chengzi/Downloads/CLion-2022.1.3/clion-2022.1.3/bin/ninja/linux/ninja -G Ninja -S /usr/class/NetworkProgramming -B /usr/class/NetworkProgramming/cmake-build-debug
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /usr/class/NetworkProgramming/cmake-build-debug
