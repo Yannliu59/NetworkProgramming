@@ -46,12 +46,12 @@ int main(void)
     if(connect(sock,(struct sockaddr*)&servaddr,sizeof(servaddr)) < 0)
         ERR_EXIT("connect");
 
+
     char sendbuf[1024] = {0};
     char recvbuf[1024] = {0};
     while (fgets(sendbuf,sizeof(sendbuf),stdin) != NULL){
         write(sock,sendbuf,strlen(sendbuf));
         read(sock,recvbuf,sizeof(recvbuf));
-
         fputs(recvbuf,stdout);
     }
     close(sock);

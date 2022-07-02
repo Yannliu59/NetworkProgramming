@@ -103,7 +103,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/home/chengzi/Downloads/CLion-2022.1.3/clion-2022.1.3/bin/cmake/linux/bin/cmake"
+			"value" : "/home/chengzi/.cache/JetBrains/RemoteDev/dist/880329aca0c3c_CLion-2022.1.3/bin/cmake/linux/bin/cmake"
 		},
 		{
 			"name" : "CMAKE_CPACK_COMMAND",
@@ -115,7 +115,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/home/chengzi/Downloads/CLion-2022.1.3/clion-2022.1.3/bin/cmake/linux/bin/cpack"
+			"value" : "/home/chengzi/.cache/JetBrains/RemoteDev/dist/880329aca0c3c_CLion-2022.1.3/bin/cmake/linux/bin/cpack"
 		},
 		{
 			"name" : "CMAKE_CTEST_COMMAND",
@@ -127,7 +127,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/home/chengzi/Downloads/CLion-2022.1.3/clion-2022.1.3/bin/cmake/linux/bin/ctest"
+			"value" : "/home/chengzi/.cache/JetBrains/RemoteDev/dist/880329aca0c3c_CLion-2022.1.3/bin/cmake/linux/bin/ctest"
 		},
 		{
 			"name" : "CMAKE_CXX_COMPILER",
@@ -411,7 +411,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/home/chengzi/Downloads/CLion-2022.1.3/clion-2022.1.3/bin/cmake/linux/bin/ccmake"
+			"value" : "/home/chengzi/.cache/JetBrains/RemoteDev/dist/880329aca0c3c_CLion-2022.1.3/bin/cmake/linux/bin/ccmake"
 		},
 		{
 			"name" : "CMAKE_EXECUTABLE_FORMAT",
@@ -643,7 +643,7 @@
 				}
 			],
 			"type" : "UNINITIALIZED",
-			"value" : "/home/chengzi/Downloads/CLion-2022.1.3/clion-2022.1.3/bin/ninja/linux/ninja"
+			"value" : "/home/chengzi/.cache/JetBrains/RemoteDev/dist/880329aca0c3c_CLion-2022.1.3/bin/ninja/linux/ninja"
 		},
 		{
 			"name" : "CMAKE_MODULE_LINKER_FLAGS",
@@ -875,7 +875,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/home/chengzi/Downloads/CLion-2022.1.3/clion-2022.1.3/bin/cmake/linux/share/cmake-3.22"
+			"value" : "/home/chengzi/.cache/JetBrains/RemoteDev/dist/880329aca0c3c_CLion-2022.1.3/bin/cmake/linux/share/cmake-3.22"
 		},
 		{
 			"name" : "CMAKE_SHARED_LINKER_FLAGS",
