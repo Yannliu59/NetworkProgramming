@@ -3,7 +3,9 @@ project(NetworkProgramming)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(echosrv echosrv.cpp)
-add_executable(echosrv2 echosrv2.cpp)
-add_executable(echocli echocli.cpp)
-add_executable(echocli_2 echocli.cpp)
+add_executable(echosrv socket/echosrv.cpp)
+add_executable(echosrv2 socket/echosrv2.cpp)
+add_executable(echocli_1 socket/echocli.cpp)
+add_executable(echocli_2 socket/echocli.cpp)
+add_executable(p2pcli socket/p2pcli.cpp)
+add_executable(p2psrv socket/p2psrv.cpp)
