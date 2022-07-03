@@ -63,7 +63,56 @@ ssize_t writen(int fd, const void *buf, size_t count){
     return count;
 
 }
+ssize_t recv_peek(int sockfd,void *buf,size_t len)
+{
+    /*
+     * recv函数只能用于套接口IO,read函数能用于套接口IO和文件IO
+     * MSG_PEEK：从套接口缓冲区中接受数据到buf当中
+     *           并没有从套接口缓冲区中将数据移除
+     * */
+    while(1){
+        int ret = recv(sockfd,buf,len,MSG_PEEK);
+        if (ret == -1 && errno == EINTR)
+            continue;
+        return ret;
+    }
+}
 
+ssize_t readline(int sockfd,void *buf,size_t maxline)
+{
+    /*
+     * 读取一行消息
+     * */
+    int ret;
+    int nread;
+    char *bufp = (char*)buf;
+    int nleft = maxline;
+    while(1){
+        ret = recv_peek(sockfd,bufp,nleft);
+        if(ret < 0)
+            return ret;
+        else if(ret == 0)
+            return ret;
+        nread = ret;
+        int i;
+        for(int i = 0; i < nread; i++){
+            if(bufp[i] == '\n'){
+                ret = readn(sockfd,bufp,i + 1);
+                if(ret != i + 1)
+                    exit(EXIT_FAILURE);
+                return ret;
+            }
+        }
+        if(nread > nleft)
+            exit(EXIT_SUCCESS);
+        nleft -= nread;
+        ret = readn(sockfd,bufp,nread);
+        if(ret != nread)
+            exit(EXIT_FAILURE);
+        bufp += nread;
+    }
+    return -1;
+}
 
 int main(void)
 {
@@ -91,36 +140,35 @@ int main(void)
     if(connect(sock,(struct sockaddr*)&servaddr,sizeof(servaddr)) < 0)
         ERR_EXIT("connect");
 
-    struct packet sendbuf;
-    struct packet recvbuf;
-    memset(&sendbuf,0,sizeof sendbuf);
-    memset(&recvbuf,0,sizeof recvbuf);
+    struct sockaddr_in localaddr;
+    socklen_t addrlen = sizeof(localaddr);
+    if(getsockname(sock,(struct sockaddr*)&localaddr,&addrlen) < 0)
+        ERR_EXIT("getsockname");
 
-    int n;
-    while (fgets(sendbuf.buf,sizeof(sendbuf.buf),stdin) != NULL){
-        n = strlen(sendbuf.buf);
-        sendbuf.len = htonl(n);
-        writen(sock,&sendbuf,4 + n);
+    printf("ip=%s port=%d\n",inet_ntoa(localaddr.sin_addr),ntohs(localaddr.sin_port));
 
-        int ret = readn(sock,&recvbuf.len,4);
+    if(getpeername(sock,(struct sockaddr*)&localaddr,&addrlen) < 0)
+        ERR_EXIT("getpeername");
+
+    printf("peerip=%s port=%d\n",inet_ntoa(localaddr.sin_addr),ntohs(localaddr.sin_port));
+
+    char sendbuf[1024] = {0};
+    char recvbuf[1024] = {0};
+    while (fgets(sendbuf,sizeof(sendbuf),stdin) != NULL){
+
+        writen(sock,sendbuf,strlen(sendbuf));
+
+        int ret = readline(sock,recvbuf,sizeof recvbuf);
         if(ret == -1)
-            ERR_EXIT("read");
-        else if(ret < 4){
+            ERR_EXIT("readline");
+        else if(ret == 0){
             printf("client_close\n");
             break;
         }
-        n = ntohl(recvbuf.len);
-        ret = readn(sock,&recvbuf.buf,n);
-        if(ret == -1)
-            ERR_EXIT("read");
-        else if(ret < n){
-            printf("client_close\n");
-            break;
-        }
 
-        fputs(recvbuf.buf,stdout);
-        memset(&recvbuf,0,sizeof recvbuf);
-        memset(&sendbuf,0,sizeof sendbuf);
+        fputs(recvbuf,stdout);
+        memset(recvbuf,0,sizeof recvbuf);
+        memset(sendbuf,0,sizeof sendbuf);
     }
     close(sock);
     return 0;

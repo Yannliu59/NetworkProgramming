@@ -13,6 +13,9 @@ using namespace std;
     Created by lyj on 2022/7/2
     p9 socket编程
     解决粘包问题，通过接受定长数据包，定义readn()函数和writen()函数
+
+    p10 socket编程
+    recv函数,readline 函数解决粘包问题
  */
 
 #define ERR_EXIT(m) \
@@ -62,7 +65,58 @@ ssize_t writen(int fd, const void *buf, size_t count){
 
 }
 
-void do_service(int conn){//子进程处理通信
+ssize_t recv_peek(int sockfd,void *buf,size_t len)
+{
+    /*
+     * recv函数只能用于套接口IO,read函数能用于套接口IO和文件IO
+     * MSG_PEEK：从套接口缓冲区中接受数据到buf当中
+     *           并没有从套接口缓冲区中将数据移除
+     * */
+    while(1){
+        int ret = recv(sockfd,buf,len,MSG_PEEK);
+        if (ret == -1 && errno == EINTR)
+            continue;
+        return ret;
+    }
+}
+
+ssize_t readline(int sockfd,void *buf,size_t maxline)
+{
+    /*
+     * 读取一行消息
+     * */
+    int ret;
+    int nread;
+    char *bufp = (char*)buf;
+    int nleft = maxline;
+    while(1){
+        ret = recv_peek(sockfd,bufp,nleft);
+        if(ret < 0)
+            return ret;
+        else if(ret == 0)
+            return ret;
+        nread = ret;
+        int i;
+        for(int i = 0; i < nread; i++){
+            if(bufp[i] == '\n'){
+                ret = readn(sockfd,bufp,i + 1);
+                if(ret != i + 1)
+                    exit(EXIT_FAILURE);
+                return ret;
+            }
+        }
+        if(nread > nleft)
+            exit(EXIT_SUCCESS);
+        nleft -= nread;
+        ret = readn(sockfd,bufp,nread);
+        if(ret != nread)
+            exit(EXIT_FAILURE);
+        bufp += nread;
+    }
+    return -1;
+}
+
+void do_service(int conn){//借助readn读取定长数据解决粘包
     struct packet recvbuf;
     int n;
     while(1){
@@ -87,6 +141,22 @@ void do_service(int conn){//子进程处理通信
     }
 }
 
+void do_service2(int conn){//借助readline读取一行来解决粘包
+    char recvbuf[1024];
+    int n;
+    while(1){
+        memset(recvbuf,0,sizeof recvbuf);
+        int ret = readline(conn,recvbuf,1024);
+        if(ret == -1)
+            ERR_EXIT("readline");
+        if(ret == 0){
+            printf("client close\n");
+            break;
+        }
+        fputs(recvbuf,stdout);
+        writen(conn,recvbuf,strlen(recvbuf));
+    }
+}
 
 int main(void)
 {
@@ -147,7 +217,7 @@ int main(void)
     pid_t pid;
     while(1) {
         if ((conn = accept(listenfd, (struct sockaddr *) &peeraddr, &peerlen)) < 0)
-            ERR_EXIT("accept");
+             ERR_EXIT("accept");
 
         printf("ip = %s port = %d\n", inet_ntoa(peeraddr.sin_addr), ntohs(peeraddr.sin_port));
 
@@ -155,7 +225,7 @@ int main(void)
         if(pid == -1)ERR_EXIT("fork");
         if(pid == 0){
             close(listenfd);
-            do_service(conn);
+            do_service2(conn);
             exit(EXIT_SUCCESS);
         } else {
             close(conn);
