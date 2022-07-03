@@ -12,8 +12,8 @@ using namespace std;
 
 /*
     Created by lyj on 2022/7/1.
-    p7 socket编程
-    实现一个回射服务器的服务端
+    p8 socket编程
+    实现点对点的连接
  */
 
 #define ERR_EXIT(m) \

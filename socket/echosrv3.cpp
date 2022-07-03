@@ -11,9 +11,8 @@ using namespace std;
 
 /*
     Created by lyj on 2022/7/2
-    p8 socket编程
-    实现一个回射服务器的服务端
-    多进程方式 实现能够接受多个客户端请求
+    p9 socket编程
+    解决粘包问题，通过接受定长数据包，定义readn()函数和writen()函数
  */
 
 #define ERR_EXIT(m) \
@@ -22,20 +21,69 @@ using namespace std;
             exit(EXIT_FAILURE); \
         }while(0)
 
-void do_service(int conn){//子进程处理通信
-    char recvbuf[1024];
-    while(1){
-        memset(recvbuf,0,sizeof recvbuf);
-        int ret = read(conn,recvbuf,sizeof recvbuf);
+struct packet{
+    int len;
+    char buf[1024];
+};
 
-        if(ret == 0){
+ssize_t readn(int fd, void *buf, size_t count)
+{
+    size_t nleft = count;
+    ssize_t nread;
+    char *bufp = (char*)buf;
+    while(nleft > 0){
+        if ((nread = read(fd,bufp,nleft)) < 0){
+            if(errno == EINTR)//信号中断情况
+                continue;
+            return -1;//失败返回-1
+        } else if(nread == 0)
+            return count - nleft;//读到了EOF
+        bufp += nread;
+        nleft -= nread;
+    }
+    return count;
+}
+
+ssize_t writen(int fd, const void *buf, size_t count){
+    size_t nleft = count;
+    ssize_t nwritten;
+    char *bufp = (char*)buf;
+    while(nleft > 0){
+        if ((nwritten = write(fd,bufp,nleft)) < 0){
+            if(errno == EINTR)//信号中断情况
+                continue;
+            return -1;//失败返回-1
+        } else if(nwritten == 0)
+            continue;
+        bufp += nwritten;
+        nleft -= nwritten;
+    }
+    return count;
+
+}
+
+void do_service(int conn){//子进程处理通信
+    struct packet recvbuf;
+    int n;
+    while(1){
+        memset(&recvbuf,0,sizeof recvbuf);
+        int ret = readn(conn,&recvbuf.len,4);
+        if(ret == -1)
+            ERR_EXIT("read");
+        else if(ret < 4){
             printf("client_close\n");
             break;
-        } else if(ret == -1)
+        }
+        n = ntohl(recvbuf.len);
+        ret = readn(conn,&recvbuf.buf,n);
+        if(ret == -1)
             ERR_EXIT("read");
-
-        fputs(recvbuf,stdout);
-        write(conn,recvbuf,ret);
+        else if(ret < n){
+            printf("client_close\n");
+            break;
+        }
+        fputs(recvbuf.buf,stdout);
+        writen(conn,&recvbuf,4 + n);
     }
 }
 
