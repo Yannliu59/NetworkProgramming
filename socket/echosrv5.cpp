@@ -12,12 +12,8 @@
 using namespace std;
 
 /*
-    Created by lyj on 2022/7/2
-    p9 socket编程
-    解决粘包问题，通过接受定长数据包，定义readn()函数和writen()函数
-
-    p10 socket编程
-    recv函数,readline 函数解决粘包问题
+    Created by lyj on 2022/7/7
+    p12 SIGPIPE信号
  */
 
 #define ERR_EXIT(m) \
@@ -160,15 +156,22 @@ void echo_service2(int conn){//借助readline读取一行来解决粘包
     }
 }
 
+void handle_sigchld(int sig)
+{
+    while(waitpid(-1,NULL,WNOHANG) > 0);
+}
+
 int main(void)
 {
     /*
      * 子进程结束，父进程收到SIGCHLD信号
      * 若父进程没有处理，则子进程虽然结束，但是还在内核进程表中占有表项，称为僵尸进程
-     * 处理方法为忽略此信号。SIG_ING表示忽略
-     *
+     * 1.处理方法为忽略此信号。SIG_ING表示忽略
+     * 2.自己定义信号处理函数
      * */
-    signal(SIGCHLD,SIG_IGN);
+    //signal(SIGCHLD,SIG_IGN);
+
+    signal(SIGCHLD,handle_sigchld);
 
     /*
      * 创建一个套接字类型
@@ -227,7 +230,7 @@ int main(void)
     pid_t pid;
     while(1) {
         if ((conn = accept(listenfd, (struct sockaddr *) &peeraddr, &peerlen)) < 0)
-             ERR_EXIT("accept");
+            ERR_EXIT("accept");
 
         printf("ip = %s port = %d\n", inet_ntoa(peeraddr.sin_addr), ntohs(peeraddr.sin_port));
 

@@ -11,3 +11,12 @@ add_executable(p2pcli socket/p2pcli.cpp)
 add_executable(p2psrv socket/p2psrv.cpp)
 add_executable(echosev3 socket/echosrv3.cpp)
 add_executable(getiplist socket/getiplist.cpp)
+
+add_executable(echocli4 socket/echocli4.cpp)
+add_executable(echosrv4 socket/echosrv4.cpp)
+
+add_executable(echosrv5 socket/echosrv5.cpp)
+add_executable(echocli5 socket/echocli5.cpp)
+
+add_executable(echocli6 socket/echocli6.cpp)
+add_executable(echosrv6 socket/echosrv6.cpp)
