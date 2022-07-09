@@ -9,9 +9,15 @@
 #include <csignal>
 
 /*
-    Created by lyj on 2022/7/7.
+    Created by lyj on 2022/7/8.
+
     p13 IO复用 select模型
-    通过select管理标准输入和套接口
+        通过select管理标准输入和套接口
+
+    p14 select实现回射服务器
+
+    p15 close 与 showdown的区别
+        进一步改进回射客户程序
  */
 
 #define ERR_EXIT(m) \
@@ -124,8 +130,12 @@ void echo_cli(int sock)
     int nready;
     int fd_stdin = fileno(stdin);
     maxfd = std::max(fd_stdin,sock);
+
+    int stdineof = 0;
+
     while(1){
-        FD_SET(fd_stdin,&rset);
+        if(stdineof == 0)
+            FD_SET(fd_stdin,&rset);
         FD_SET(sock,&rset);
         nready = select(maxfd + 1,&rset,NULL,NULL,NULL);
         if(nready == -1)
@@ -144,9 +154,17 @@ void echo_cli(int sock)
             memset(recvbuf,0,sizeof recvbuf);
         } else if(FD_ISSET(fd_stdin,&rset)){
             if(fgets(sendbuf,sizeof(sendbuf),stdin) == NULL)
-                break;
-            writen(sock,sendbuf,strlen(sendbuf));
-            memset(sendbuf,0,sizeof sendbuf);
+            {
+                stdineof = 1;
+                /*
+                close(sock);
+                */
+                shutdown(sock,SHUT_WR);
+
+            } else {
+                writen(sock,sendbuf,strlen(sendbuf));
+                memset(sendbuf,0,sizeof sendbuf);
+            }
         }
     }
     close(sock);

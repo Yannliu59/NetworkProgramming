@@ -12,9 +12,15 @@
 using namespace std;
 
 /*
-    Created by lyj on 2022/7/7.
+    Created by lyj on 2022/7/8.
+
     p13 IO复用 select模型
-    通过select管理标准输入和套接口
+        通过select管理标准输入和套接口
+
+    p14 select实现回射服务器
+
+    p15 close 与 showdown的区别
+        进一步改进回射客户程序
  */
 
 #define ERR_EXIT(m) \
@@ -61,7 +67,6 @@ ssize_t writen(int fd, const void *buf, size_t count){
         nleft -= nwritten;
     }
     return count;
-
 }
 
 ssize_t recv_peek(int sockfd,void *buf,size_t len)
@@ -161,17 +166,16 @@ void handle_sigchld(int sig)
 {
     while(waitpid(-1,NULL,WNOHANG) > 0);
 }
+void handle_sigpipe(int sig)
+{
+    printf("sig = %d\n",sig);
+}
+
 
 int main(void)
 {
-    /*
-     * 子进程结束，父进程收到SIGCHLD信号
-     * 若父进程没有处理，则子进程虽然结束，但是还在内核进程表中占有表项，称为僵尸进程
-     * 1.处理方法为忽略此信号。SIG_ING表示忽略
-     * 2.自己定义信号处理函数
-     * */
     //signal(SIGCHLD,SIG_IGN);
-
+    signal(SIGPIPE,handle_sigpipe);
     signal(SIGCHLD,handle_sigchld);
 
     /*
@@ -225,25 +229,83 @@ int main(void)
      * peerlen：将返回对等方的套接字地址长度
      * */
     struct sockaddr_in peeraddr;//定义一个对等方的地址
-    socklen_t peerlen = sizeof(peeraddr);
+    socklen_t peerlen;
     int conn;//接受accept返回的连接的描述符
 
-    pid_t pid;
-    while(1) {
-        if ((conn = accept(listenfd, (struct sockaddr *) &peeraddr, &peerlen)) < 0)
-            ERR_EXIT("accept");
+    int client[FD_SETSIZE];
+    int maxi = 0;
+    for(int i = 0; i < FD_SETSIZE; i++)
+        client[i] = -1;
 
-        printf("ip = %s port = %d\n", inet_ntoa(peeraddr.sin_addr), ntohs(peeraddr.sin_port));
+    int nready;
+    int maxfd = listenfd;
+    fd_set rset;
+    fd_set allset;
+    FD_ZERO(&rset);
+    FD_ZERO(&allset);
+    FD_SET(listenfd,&allset);
 
-        pid = fork();
-        if(pid == -1)ERR_EXIT("fork");
-        if(pid == 0){
-            close(listenfd);
-            echo_service2(conn);
-            exit(EXIT_SUCCESS);
-        } else {
-            close(conn);
+    while(1){
+        int i;
+        rset = allset;
+        nready = select(maxfd + 1,&rset,NULL,NULL,NULL);
+        if(nready == -1){
+            if(errno == EINTR)
+                continue;
+            ERR_EXIT("select");
         }
+        if (nready == 0)continue;
+
+        if(FD_ISSET(listenfd,&rset)){ //处理监听套接口
+            peerlen = sizeof(peeraddr);
+            conn = accept(listenfd,(struct sockaddr*)&peeraddr,&peerlen);
+
+            if(conn == -1)
+                ERR_EXIT("select");
+
+            for(i = 0; i < FD_SETSIZE; i++){
+                if(client[i] < 0){
+                    client[i] = conn;
+                    maxi = max(maxi,i);
+                    break;
+                }
+            }
+            if(i == FD_SETSIZE){
+                fprintf(stderr,"too many clients\n");
+                exit(EXIT_FAILURE);
+            }
+            printf("ip = %s port = %d\n",inet_ntoa(peeraddr.sin_addr),ntohs(peeraddr.sin_port));
+            FD_SET(conn,&allset);
+            maxfd = max(conn,maxfd);
+            if(--nready <=0)
+                continue;
+        }
+
+        for(i = 0; i <= maxi; i++){ //处理其他连接套接口
+            conn = client[i];
+            if(conn == -1)
+                continue;
+            if(FD_ISSET(conn,&rset)){
+                char recvbuf[1024] = {0};
+                int ret = readline(conn,recvbuf,1024);
+                if(ret == -1)
+                    ERR_EXIT("readline");
+                if(ret == 0){
+                    printf("client close\n");
+                    FD_CLR(conn,&allset);
+                    client[i] = -1;
+                    close(conn);
+                }
+                fputs(recvbuf,stdout);
+                sleep(4);
+                writen(conn,recvbuf,strlen(recvbuf));
+                if(--nready <= 0)
+                    break;
+            }
+        }
+
+
+
     }
     return 0;
 }
