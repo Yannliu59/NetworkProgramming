@@ -20,3 +20,6 @@ add_executable(echocli5 socket/echocli5.cpp)
 
 add_executable(echocli6 socket/echocli6.cpp)
 add_executable(echosrv6 socket/echosrv6.cpp)
+
+add_executable(echocli7 socket/echocli7.cpp)
+add_executable(echosrv7 socket/echosrv7.cpp)
