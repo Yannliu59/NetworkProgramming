@@ -23,3 +23,18 @@ add_executable(echosrv6 socket/echosrv6.cpp)
 
 add_executable(echocli7 socket/echocli7.cpp)
 add_executable(echosrv7 socket/echosrv7.cpp)
+
+add_executable(pollcli socket/pollcli.cpp)
+add_executable(pollsrv socket/pollsrv.cpp)
+
+add_executable(conntest socket/conntest.cpp)
+add_executable(epollsrv socket/epollsrv.cpp)
+add_executable(epollcli socket/epollcli.cpp)
+
+add_executable(u_echosrv socket/u_echosrv.cpp)
+add_executable(u_echocli socket/u_echocli.cpp)
+
+add_executable(UdpChatCli udpchat/UdpChatCli.cpp)
+add_executable(UdpChatSrv udpchat/UdpChatSrv.cpp)
+
+add_executable(test udpchat/test.cpp)
