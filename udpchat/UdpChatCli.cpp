@@ -1,8 +1,8 @@
 //
-// Created by jxq on 19-8-8.
+// Created by chengzi on 2022-7-17.
 //
 
-// socket编程15 UDP聊天实验室实现
+// p20 UDP聊天实验室实现
 
 #include "Pub.h"
 #include <iostream>

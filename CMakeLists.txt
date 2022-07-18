@@ -38,3 +38,9 @@ add_executable(UdpChatCli udpchat/UdpChatCli.cpp)
 add_executable(UdpChatSrv udpchat/UdpChatSrv.cpp)
 
 add_executable(test udpchat/test.cpp)
+
+add_executable(unixsrv unix/unixsrv.cpp)
+add_executable(unixcli unix/unixcli.cpp)
+
+add_executable(sockpair unix/sockpair.cpp)
+add_executable(sockpair02 unix/sockpair02.cpp)
